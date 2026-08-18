@@ -1,5 +1,5 @@
 # genai-projects
-GenAI projects
+Learning GenAI by building production-ready applications with React Native and FastAPI.
 
 genai-projects/
 │
