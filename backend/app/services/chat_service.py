@@ -1,7 +1,8 @@
 from app.schemas.chat import ChatResponse
+from app.services.ai_provider import AIProvider
 
 class ChatService:
-    def __init__(self, provider):
+    def __init__(self, provider: AIProvider):
         self.provider = provider
 
     def generate(self, message: str) -> ChatResponse:
