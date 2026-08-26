@@ -29,7 +29,7 @@ class OpenAIProvider(AIProvider):
                 provider = "openai",
                 message = "OpenAI quota exceeded",
                 error_code = "429",
-                retryable = False,
+                retryable = True,
                 original_exception = e
             ) from e
 

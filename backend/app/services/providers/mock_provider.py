@@ -1,8 +1,10 @@
+# app/services/providers/mock_provider.py
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MockProvider(AIProvider):
     
@@ -10,12 +12,14 @@ class MockProvider(AIProvider):
         self.should_fail = should_fail
 
     def generate(self, message: str) -> str:
-        logger.error(f"OpenAI rate limit / quota error: {self.should_fail}")
         if self.should_fail:
+            logger.warning("Mock provider simulating a failure")
             raise AIProviderError(
                 provider="mock",
                 message="Simulated mock failure",
-                error_code = "429",
+                error_code="429",
                 retryable=True,
             )
+
+        logger.info(f"Mock provider generating reply | message_length={len(message)}")
         return f"Mock reply to: {message}"

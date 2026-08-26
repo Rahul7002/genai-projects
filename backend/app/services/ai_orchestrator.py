@@ -1,7 +1,9 @@
 import logging
+import time
 
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
+from app.services.retry_policy import RetryPolicy
 
 
 logger = logging.getLogger(__name__)
@@ -9,8 +11,13 @@ logger = logging.getLogger(__name__)
 
 class ProviderOrchestrator(AIProvider):
 
-    def __init__(self, providers: list[AIProvider]):
+    def __init__(
+        self,
+        providers: list[AIProvider],
+        retry_policy: RetryPolicy
+    ):
         self.providers = providers
+        self.retry_policy = retry_policy
 
     def generate(self, message: str) -> str:
 
@@ -25,16 +32,32 @@ class ProviderOrchestrator(AIProvider):
         last_error = None
 
         for provider in self.providers:
-            try:
-                return provider.generate(message)
+            attempt = 1
+            while True:
+                try:
+                    return provider.generate(message)
 
-            except AIProviderError as e:
-                logger.warning(
-                    "AI provider failed | provider=%s | error_code=%s",
-                    e.provider,
-                    e.error_code,
-                )
+                except AIProviderError as e:
+                    logger.warning(
+                        "AI provider failed | provider=%s | error_code=%s",
+                        e.provider,
+                        e.error_code,
+                    )
 
-                last_error = e
+                    last_error = e
+
+                    if not self.retry_policy.should_retry(attempt, e):
+                        break  # give up on THIS provider, move to the next one
+                    
+                    delay = self.retry_policy.get_delay(attempt)
+
+                    logger.info(
+                        "Retrying provider=%s in %.1fs | attempt=%d",
+                        e.provider,
+                        delay,
+                        attempt + 1,
+                    )
+                    time.sleep(delay)
+                    attempt += 1
 
         raise last_error
