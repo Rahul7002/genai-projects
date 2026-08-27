@@ -4,6 +4,7 @@ import time
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
 from app.services.retry_policy import RetryPolicy
+from app.models.generation import GenerationRequest
 
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ class ProviderOrchestrator(AIProvider):
         self.providers = providers
         self.retry_policy = retry_policy
 
-    def generate(self, message: str) -> str:
+    def generate(self, request: GenerationRequest) -> str:
 
         if not self.providers:
             raise AIProviderError(
@@ -35,7 +36,7 @@ class ProviderOrchestrator(AIProvider):
             attempt = 1
             while True:
                 try:
-                    return provider.generate(message)
+                    return provider.generate(request)
 
                 except AIProviderError as e:
                     logger.warning(
