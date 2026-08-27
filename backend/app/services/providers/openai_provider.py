@@ -1,5 +1,6 @@
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
+from app.models.generation import GenerationRequest
 import logging
 import openai
 
@@ -9,15 +10,15 @@ class OpenAIProvider(AIProvider):
     def __init__(self, client):
         self.client = client
 
-    def generate(self, message:str) -> str:
+    def generate(self, request: GenerationRequest) -> str:
         logger.info(
             "Sending request to OpenAI | message_length=%d",
-            len(message)
+            len(request.message)
         )
         try:
             response = self.client.responses.create(
                 model="gpt-5-mini",
-                input=message
+                input=request.message
             )
             logger.info(f"Received response from OpenAI | output={response.output_text}")
             logger.info("Received response from OpenAI")
