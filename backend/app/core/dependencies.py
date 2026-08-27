@@ -1,8 +1,10 @@
 from fastapi import Depends
 from openai import OpenAI
+import google.generativeai as genai
 
 from app.core.config import settings
 from app.services.providers.openai_provider import OpenAIProvider
+from app.services.providers.gemini_provider import GeminiProvider
 from app.services.providers.mock_provider import MockProvider
 from app.services.chat_service import ChatService
 from app.services.ai_provider import AIProvider
@@ -18,6 +20,14 @@ def get_openai_client() -> OpenAI:
 def get_openai_provider(client: OpenAI = Depends(get_openai_client)) -> AIProvider:
     return OpenAIProvider(client)
 
+def get_gemini_client():
+    genai.configure(api_key=settings.GEMINI_API_KEY)
+    return genai.GenerativeModel("gemini-3.5-flash-lite")
+
+
+def get_gemini_provider(client=Depends(get_gemini_client)) -> AIProvider:
+    return GeminiProvider(client)
+
 def get_mock_provider() -> AIProvider:
     return MockProvider(should_fail=False)
 
@@ -26,11 +36,12 @@ def get_retry_policy() -> RetryPolicy:
 
 def get_provider_orchestrator(
     openai_provider: AIProvider = Depends(get_openai_provider),
+    gemini_provider: AIProvider = Depends(get_gemini_provider),
     mock_provider: AIProvider = Depends(get_mock_provider),
     retry_policy: RetryPolicy = Depends(get_retry_policy)
 ) -> AIProvider:
     return ProviderOrchestrator(
-        providers=[openai_provider, mock_provider],
+        providers=[gemini_provider,openai_provider, mock_provider],
         retry_policy=retry_policy
     )
 
