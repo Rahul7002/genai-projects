@@ -4,7 +4,8 @@ import time
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
 from app.services.retry_policy import RetryPolicy
-from app.models.generation import GenerationRequest
+from app.models.generation import GenerationRequest, GenerationChunk
+from collections.abc import Iterator
 
 
 logger = logging.getLogger(__name__)
@@ -19,6 +20,9 @@ class ProviderOrchestrator(AIProvider):
     ):
         self.providers = providers
         self.retry_policy = retry_policy
+
+    def stream(self, request: GenerationRequest) -> Iterator[GenerationChunk]:
+        raise NotImplementedError("Streaming not yet implemented for this provider")
 
     def generate(self, request: GenerationRequest) -> str:
 
