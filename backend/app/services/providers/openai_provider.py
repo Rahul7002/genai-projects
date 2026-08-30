@@ -1,14 +1,20 @@
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
-from app.models.generation import GenerationRequest
+from app.models.generation import GenerationRequest, GenerationChunk
+from collections.abc import Iterator
 import logging
 import openai
 
 logger = logging.getLogger(__name__)
 
 class OpenAIProvider(AIProvider):
-    def __init__(self, client):
+    def __init__(self, client, model: str):
         self.client = client
+        self.model = model
+
+    # Temporary stub — add to OpenAIProvider, GeminiProvider, ProviderOrchestrator
+    def stream(self, request: GenerationRequest) -> Iterator[GenerationChunk]:
+        raise NotImplementedError("Streaming not yet implemented for this provider")
 
     def generate(self, request: GenerationRequest) -> str:
         logger.info(
@@ -17,7 +23,7 @@ class OpenAIProvider(AIProvider):
         )
         try:
             response = self.client.responses.create(
-                model="gpt-5-mini",
+                model= request.model or self.model,
                 input=request.message
             )
             logger.info(f"Received response from OpenAI | output={response.output_text}")

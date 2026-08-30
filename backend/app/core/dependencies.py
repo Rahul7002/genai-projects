@@ -18,11 +18,11 @@ def get_openai_client() -> OpenAI:
     )
 
 def get_openai_provider(client: OpenAI = Depends(get_openai_client)) -> AIProvider:
-    return OpenAIProvider(client)
+    return OpenAIProvider(client, model=settings.OPENAI_MODEL)
 
 def get_gemini_client():
     genai.configure(api_key=settings.GEMINI_API_KEY)
-    return genai.GenerativeModel("gemini-3.5-flash-lite")
+    return genai.GenerativeModel(settings.GEMINI_MODEL)
 
 
 def get_gemini_provider(client=Depends(get_gemini_client)) -> AIProvider:
@@ -32,7 +32,11 @@ def get_mock_provider() -> AIProvider:
     return MockProvider(should_fail=False)
 
 def get_retry_policy() -> RetryPolicy:
-    return RetryPolicy(max_attempts=3, base_delay=1.0, max_delay=10.0)
+    return RetryPolicy(
+        max_attempts=settings.RETRY_MAX_ATTEMPTS,
+        base_delay=settings.RETRY_BASE_DELAY,
+        max_delay=settings.RETRY_MAX_DELAY
+    )
 
 def get_provider_orchestrator(
     openai_provider: AIProvider = Depends(get_openai_provider),

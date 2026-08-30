@@ -5,7 +5,8 @@ from google.api_core.exceptions import ResourceExhausted, Unauthenticated, Googl
 
 from app.services.ai_provider import AIProvider
 from app.services.exceptions import AIProviderError
-from app.models.generation import GenerationRequest
+from app.models.generation import GenerationRequest, GenerationChunk
+from collections.abc import Iterator
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,10 @@ logger = logging.getLogger(__name__)
 class GeminiProvider(AIProvider):
     def __init__(self, client):
         self.client = client  # a configured genai.GenerativeModel instance
+
+     # Temporary stub — add to OpenAIProvider, GeminiProvider, ProviderOrchestrator
+    def stream(self, request: GenerationRequest) -> Iterator[GenerationChunk]:
+        raise NotImplementedError("Streaming not yet implemented for this provider")
 
     def generate(self, request: GenerationRequest) -> str:
         logger.info(f"Sending request to Gemini | message_length={len(request.message)}")
