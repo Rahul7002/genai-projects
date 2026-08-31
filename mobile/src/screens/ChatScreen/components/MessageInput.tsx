@@ -9,12 +9,16 @@ import {
 
 type MessageInputProps = {
   onSend: (message: string) => void;
+  disabled?: boolean;
 };
 
-export function MessageInput({ onSend }: MessageInputProps) {
+export function MessageInput({ onSend, disabled = false }: MessageInputProps) {
   const [text, setText] = useState('');
 
   const handleSend = () => {
+    if(disabled) {
+        return;
+    }
     const message = text.trim();
 
     if (!message) {
@@ -32,6 +36,7 @@ export function MessageInput({ onSend }: MessageInputProps) {
         onChangeText={setText}
         placeholder="Ask something..."
         style={styles.input}
+        editable={!disabled}
       />
 
       <Pressable onPress={handleSend} style={styles.button}>
