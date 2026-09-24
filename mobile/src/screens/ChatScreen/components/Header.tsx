@@ -2,10 +2,16 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import { Feather } from '@expo/vector-icons'
 
-export default function Header() {
+type HeaderProps = {
+    onMenuPress : () =>  void;
+}
+
+export default function Header({ onMenuPress }: HeaderProps) {
+
     return (
         <View style={styles.header}>
             <TouchableOpacity
+                onPress={onMenuPress}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 style={styles.headerButton}
             >
