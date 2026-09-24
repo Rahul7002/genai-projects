@@ -1,7 +1,8 @@
 import { useState } from 'react';
 
 import type { ChatMessage } from '../types';
-import { sendChatMessage } from '../../api/chatApi';
+import { sendChatMessage } from '../../../api/chatApi';
+import { Keyboard } from 'react-native';
 
 export function useChat() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -12,7 +13,7 @@ export function useChat() {
         if (isSending) {
             return;
         }
-
+        Keyboard.dismiss();
         setError(null);
         setIsSending(true);
 
@@ -47,6 +48,7 @@ export function useChat() {
 
             // 2. Call backend API
             const response = await sendChatMessage(content);
+            console.log('response',response)
 
             // 3. Update assistant message with backend response
             setMessages((currentMessages) =>

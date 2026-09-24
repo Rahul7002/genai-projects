@@ -2,7 +2,7 @@ export type ChatApiResponse = {
     reply: string;
   };
   
-  const API_BASE_URL = 'http://192.168.16.119:8000';
+  const API_BASE_URL = 'http://192.168.1.16:8000';
   
   export async function sendChatMessage(
     message: string
