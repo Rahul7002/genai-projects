@@ -1,19 +1,21 @@
 import { useState } from 'react';
 
 import type { ChatMessage } from '../types';
+import { sendChatMessage } from '../../../api/chatApi';
+import { Keyboard } from 'react-native';
 
 export function useChat() {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [isStreaming, setIsStreaming] = useState(false);
+    const [isSending, setIsSending] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const sendMessage = async (content: string) => {
-        if (isStreaming) {
+        if (isSending) {
             return;
         }
-
+        Keyboard.dismiss();
         setError(null);
-        setIsStreaming(true);
+        setIsSending(true);
 
         const timestamp = Date.now();
 
@@ -36,7 +38,7 @@ export function useChat() {
             };
 
         try {
-            //1. create messages
+            // 1. Add user message + empty assistant message
 
             setMessages((currentMessages) => [
                 ...currentMessages,
@@ -44,52 +46,22 @@ export function useChat() {
                 assistantMessage,
             ]);
 
-            const chunks = [
-                'GenAI',
-                ' is',
-                ' a',
-                ' technology',
-                ' that',
-                ' enables',
-                ' AI',
-                ' models',
-                ' to',
-                ' generate',
-                ' new',
-                ' content.',
-            ];
-            //2. stream chunks
+            // 2. Call backend API
+            const response = await sendChatMessage(content);
+            console.log('response',response)
 
-            for (const chunk of chunks) {
-                await new Promise((resolve) => setTimeout(resolve, 500));
-
-                setMessages((currentMessages) =>
-                    currentMessages.map((message) =>
-                        message.id === assistantMessageId
-                            ? {
-                                ...message,
-                                content: message.content + chunk,
-                            }
-                            : message
-                    )
-                );
-            }
-
-
-            //3. mark assistant as completed
-
+            // 3. Update assistant message with backend response
             setMessages((currentMessages) =>
                 currentMessages.map((message) =>
                     message.id === assistantMessageId
                         ? {
                             ...message,
+                            content: response.reply,
                             status: 'completed',
                         }
                         : message
                 )
             );
-
-            setIsStreaming(false);
 
         } catch (error) {
             const errorMessage =
@@ -103,6 +75,7 @@ export function useChat() {
                         ? {
                             ...message,
                             status: 'error',
+                            content: 'Failed to get a response.',
                         }
                         : message
                 )
@@ -111,13 +84,13 @@ export function useChat() {
             setError(errorMessage);
             // handle failure
         } finally {
-            setIsStreaming(false);
+            setIsSending(false);
         }
     };
 
     return {
         messages,
-        isStreaming,
+        isSending,
         error,
         sendMessage,
     };

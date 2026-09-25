@@ -8,7 +8,7 @@ export default function ChatScreen() {
 
   const {
     messages,
-    isStreaming,
+    isSending,
     sendMessage,
   } = useChat();
 
@@ -17,7 +17,7 @@ export default function ChatScreen() {
       <Text style={styles.title}>GenAI Chat</Text>
 
       <MessageList messages={messages} />
-      <MessageInput onSend={sendMessage} disabled={isStreaming} />
+      <MessageInput onSend={sendMessage} disabled={isSending} />
     </View>
   );
 }

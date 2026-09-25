@@ -1,6 +1,9 @@
-import { FlatList, ListRenderItem, Text, View } from 'react-native';
+import { FlatList, Keyboard, ListRenderItem, Platform, StyleSheet, Text, View } from 'react-native';
 
 import type { ChatMessage } from '../types';
+import { MessageItem } from './MessageItem';
+import { useEffect, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 
 type MessageListProps = {
     messages: ChatMessage[];
@@ -8,22 +11,79 @@ type MessageListProps = {
 
 export function MessageList({ messages }: MessageListProps) {
 
-    const renderItem: ListRenderItem<ChatMessage> = ({ item }) => {
+    const flatListRef = useRef<FlatList<ChatMessage>>(null);
+
+    useEffect(() => {
+        if (messages.length > 0) {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }
+    }, [messages]);
+
+    const scrollToEnd = (animated = true) => {
+        flatListRef.current?.scrollToEnd({ animated });
+    };
+
+    // Scroll down when keyboard opens/focuses
+  useEffect(() => {
+    const eventName = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+
+    const keyboardListener = Keyboard.addListener(eventName, () => {
+      if (messages.length > 0) {
+        // Small delay to ensure the layout resize finishes before scrolling
+        setTimeout(() => {
+          scrollToEnd(true);
+        }, 100);
+      }
+    });
+
+    return () => {
+      keyboardListener.remove();
+    };
+  }, [messages.length]);
+
+    if (messages.length === 0) {
         return (
-            <View style={{ alignSelf: item.role == "assistant" ? 'flex-end' : 'flex-start'}}>
-                <Text>role: {item.role}</Text>
-                <Text>message: {item.content}</Text>
+            <View style={styles.emptyContainer}>
+                <View style={styles.logoCircle}>
+                    <Ionicons name="sparkles" size={26} color="#ffffff" />
+                </View>
             </View>
-        )
+        );
     }
 
     return (
-        <View style={{ width: '100%', height: '50%' }}>
             <FlatList
+                ref={flatListRef}
                 data={messages}
                 keyExtractor={(message) => message.id}
-                renderItem={renderItem}
+                renderItem={({ item }) => <MessageItem message={item} />}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.listContainer}
+                onContentSizeChange={() => {
+                    scrollToEnd(false)
+                  }}
             />
-        </View>
     );
 }
+
+const styles = StyleSheet.create({
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      logoCircle: {
+        width: 52,
+        height: 52,
+        borderRadius: 26,
+        backgroundColor: '#000000',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+    listContainer: {
+        flexGrow: 1,
+        justifyContent: 'flex-start', // Pins initial messages to the very top
+        paddingVertical: 16,
+        paddingBottom: 24,
+    },
+})
